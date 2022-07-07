@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_sample_app/auth/vm/auth_controller.dart';
-import 'package:supabase_sample_app/auth/vm/auth_state.dart';
 import 'package:supabase_sample_app/auth/widget/sign_in.dart';
 import 'package:supabase_sample_app/auth/widget/text_field.dart';
 
@@ -29,8 +28,8 @@ class _SignUpState extends ConsumerState<SignUp> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthenticationState>(authStateProvider, (T, state) {
-      if (state.isSuccess) {
+    ref.listen<ControllerState>(controllerProvider, (prev, state) {
+      if (state.success) {
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => const SignIn()));
       }
@@ -145,20 +144,20 @@ class _SignUpState extends ConsumerState<SignUp> {
                 ),
                 const SizedBox(height: 50),
                 HookConsumer(builder: ((context, ref, child) {
-                  final controller = ref.watch(authStateProvider);
+                  final controller = ref.watch(controllerProvider);
                   return Center(
                     child: SizedBox(
                         width: 300,
                         height: 50,
                         child: ElevatedButton(
                             onPressed: (() {
-                              ref.read(authStateProvider.notifier).signUp(
+                              ref.read(controllerProvider.notifier).signUp(
                                   emailController.text,
                                   passwordController.text,
                                   firstnameController.text,
                                   lastnameController.text);
                             }),
-                            child: controller.isloading
+                            child: controller.isLoading
                                 ? const Center(
                                     child: SizedBox(
                                         height: 18,

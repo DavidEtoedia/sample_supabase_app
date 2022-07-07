@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_sample_app/auth/auth_state/auth_state_flow.dart';
 import 'package:supabase_sample_app/auth/vm/auth_controller.dart';
-import 'package:supabase_sample_app/auth/vm/auth_state.dart';
 import 'package:supabase_sample_app/auth/widget/sign_up.dart';
 import 'package:supabase_sample_app/auth/widget/text_field.dart';
+import 'package:supabase_sample_app/stocks/stock_screen.dart';
 
-class SignIn extends StatefulHookConsumerWidget {
+class SignIn extends StatefulWidget {
   const SignIn({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<SignIn> createState() => _SignInState();
+  State<SignIn> createState() => _SignInState();
 }
 
-class _SignInState extends ConsumerState<SignIn> {
+class _SignInState extends AuthState<SignIn> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   @override
@@ -24,17 +25,28 @@ class _SignInState extends ConsumerState<SignIn> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthenticationState>(authStateProvider, (T, state) {
-      if (state.isSuccess) {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => const SignIn()));
-      }
-      if (!state.isSuccess) {
-        print(state.errorMessage);
-      }
-    });
-    return Scaffold(
-      body: SafeArea(
+    return Scaffold(body: HookConsumer(builder: ((context, ref, child) {
+      ref.listen<ControllerState>(controllerProvider, (prev, state) {
+        if (state.success) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const StockScreen()));
+        }
+        if (state.error) {
+          ScaffoldMessenger.of(context).showMaterialBanner(MaterialBanner(
+            content: Text(state.errorMessage),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).removeCurrentMaterialBanner();
+                },
+                child: const Text('DISMISS'),
+              ),
+            ],
+          ));
+        }
+      });
+      final controller = ref.watch(controllerProvider);
+      return SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 25, right: 25, top: 30),
           child: Column(
@@ -105,34 +117,31 @@ class _SignInState extends ConsumerState<SignIn> {
               const SizedBox(
                 height: 20,
               ),
-              HookConsumer(builder: ((context, ref, child) {
-                final controller = ref.watch(authStateProvider);
-                return Center(
-                  child: SizedBox(
-                      width: 300,
-                      height: 50,
-                      child: ElevatedButton(
-                          onPressed: (() async {
-                            await ref.read(authStateProvider.notifier).signIn(
-                                  emailController.text,
-                                  passwordController.text,
-                                );
-                          }),
-                          child: controller.isloading
-                              ? const Center(
-                                  child: SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                      )))
-                              : const Text("SignUp"))),
-                );
-              }))
+              Center(
+                child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: 50,
+                    child: ElevatedButton(
+                        onPressed: (() async {
+                          ref.read(controllerProvider.notifier).signIn(
+                                emailController.text,
+                                passwordController.text,
+                              );
+                        }),
+                        child: controller.isLoading
+                            ? const Center(
+                                child: SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )))
+                            : const Text("Sign In"))),
+              )
             ],
           ),
         ),
-      ),
-    );
+      );
+    })));
   }
 }

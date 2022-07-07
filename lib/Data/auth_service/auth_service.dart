@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_sample_app/Data/model/stocks.dart';
 
 class AuthService {
   Supabase supabase;
@@ -40,6 +41,21 @@ class AuthService {
     } else {
       // print(res.data);
     }
+  }
+
+  Future<void> createStock(Stocks stocks) async {
+    final res = await supabase.client.from("stocks").insert(stocks).execute();
+
+    if (res.error != null) {
+      throw res.error?.message ?? "";
+    } else {}
+  }
+
+  Stream<List<Stocks>> getStocks() {
+    final res = supabase.client.from('stocks').stream(['id']).execute().map(
+        (event) => List<Stocks>.from(event.map((x) => Stocks.fromJson(x))));
+
+    return res;
   }
 
   Subscription? authchange() {
