@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_sample_app/Data/model/stocks.dart';
+import 'package:supabase_sample_app/Data/providers/auth_providers.dart';
 import 'package:supabase_sample_app/auth/vm/auth_controller.dart';
+import 'package:supabase_sample_app/auth/widget/profile_screen.dart';
 import 'package:supabase_sample_app/auth/widget/text_field.dart';
 import 'package:supabase_sample_app/stocks/available_stocks.dart';
 import 'package:uuid/uuid.dart';
@@ -14,6 +16,16 @@ class StockScreen extends StatefulWidget {
 }
 
 class _StockScreenState extends State<StockScreen> {
+  FocusNode focusNode = FocusNode();
+  @override
+  void initState() {
+    focusNode = FocusNode();
+    focusNode.addListener(
+        () => print('focusNode updated: hasFocus: ${focusNode.hasFocus}'));
+
+    super.initState();
+  }
+
   TextEditingController itemName = TextEditingController();
   TextEditingController itemAmount = TextEditingController();
   TextEditingController itemQuantity = TextEditingController();
@@ -23,6 +35,7 @@ class _StockScreenState extends State<StockScreen> {
     itemAmount.dispose();
     itemName.dispose();
     itemQuantity.dispose();
+    focusNode.dispose();
     super.dispose();
   }
 
@@ -30,6 +43,7 @@ class _StockScreenState extends State<StockScreen> {
   Widget build(BuildContext context) {
     return Scaffold(body: HookConsumer(
       builder: (context, ref, child) {
+        final userProfile = ref.watch(streamUserProfile);
         final controller = ref.watch(controllerProvider);
         ref.listen<ControllerState>(controllerProvider, (prev, state) {
           if (state.error) {
@@ -53,9 +67,39 @@ class _StockScreenState extends State<StockScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Create Stock",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Create Stock",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w800),
+                      ),
+                      userProfile.when(
+                          data: (data) {
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ProfileScreen(
+                                              address: data[0].address,
+                                              firstName: data[0].firstName,
+                                              lastName: data[0].lastName,
+                                              urlImage: data[0].imageUrl,
+                                            )));
+                              },
+                              child: const Icon(
+                                Icons.account_circle_rounded,
+                                size: 30,
+                              ),
+                            );
+                          },
+                          loading: () => const CircularProgressIndicator(),
+                          error: (e, s) {
+                            return Text(e.toString());
+                          }),
+                    ],
                   ),
                   const SizedBox(
                     height: 20,
@@ -109,6 +153,7 @@ class _StockScreenState extends State<StockScreen> {
                     height: 10,
                   ),
                   TextFormInput(
+                      focusNode: focusNode,
                       labelText: "Enter your email",
                       controller: itemQuantity,
                       validator: (value) => null,
@@ -134,6 +179,8 @@ class _StockScreenState extends State<StockScreen> {
                                   id: id.v4(),
                                   itemAmount: int.parse(itemAmount.text),
                                   created: DateTime.now());
+
+                              focusNode.unfocus();
 
                               ref
                                   .read(controllerProvider.notifier)

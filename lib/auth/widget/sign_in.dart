@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_sample_app/Data/controller/generic_state_notifier.dart';
 import 'package:supabase_sample_app/auth/auth_state/auth_state_flow.dart';
-import 'package:supabase_sample_app/auth/vm/auth_controller.dart';
+import 'package:supabase_sample_app/auth/auth_state/auth_vm.dart/vm.dart';
 import 'package:supabase_sample_app/auth/widget/sign_up.dart';
 import 'package:supabase_sample_app/auth/widget/text_field.dart';
 import 'package:supabase_sample_app/stocks/stock_screen.dart';
@@ -26,14 +27,15 @@ class _SignInState extends AuthState<SignIn> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: HookConsumer(builder: ((context, ref, child) {
-      ref.listen<ControllerState>(controllerProvider, (prev, state) {
-        if (state.success) {
+      final signIn = ref.watch(signInProvider);
+      ref.listen<RequestState>(signInProvider, (prev, state) {
+        if (state is Success) {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => const StockScreen()));
         }
-        if (state.error) {
+        if (state is Error) {
           ScaffoldMessenger.of(context).showMaterialBanner(MaterialBanner(
-            content: Text(state.errorMessage),
+            content: Text(state.error.toString()),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -45,7 +47,6 @@ class _SignInState extends AuthState<SignIn> {
           ));
         }
       });
-      final controller = ref.watch(controllerProvider);
       return SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 25, right: 25, top: 30),
@@ -123,12 +124,12 @@ class _SignInState extends AuthState<SignIn> {
                     height: 50,
                     child: ElevatedButton(
                         onPressed: (() async {
-                          ref.read(controllerProvider.notifier).signIn(
+                          ref.read(signInProvider.notifier).signIn(
                                 emailController.text,
                                 passwordController.text,
                               );
                         }),
-                        child: controller.isLoading
+                        child: signIn is Loading
                             ? const Center(
                                 child: SizedBox(
                                     height: 18,

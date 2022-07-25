@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_sample_app/Data/model/stocks.dart';
+import 'package:supabase_sample_app/Data/model/user_profile.dart';
 
 class AuthService {
   Supabase supabase;
@@ -11,7 +12,14 @@ class AuthService {
     if (res.error != null) {
       throw res.error?.message ?? "";
     } else {
-      insertUser(firstname, lastname, res.user?.id ?? "");
+      var userProfile = UserProfile(
+          created: DateTime.now(),
+          firstName: firstname,
+          lastName: lastname,
+          id: res.data?.user?.id,
+          address: "",
+          imageUrl: "");
+      insertUser(userProfile);
       // print(res.data);
     }
   }
@@ -32,10 +40,12 @@ class AuthService {
     }
   }
 
-  Future<void> insertUser(
-      String firstname, String lastname, String userId) async {
-    final user = {"firstname": firstname, "lastname": lastname, "id": userId};
-    final res = await supabase.client.from("profile").insert(user).execute();
+  Future<void> insertUser(UserProfile userProfile) async {
+    // final user = {"firstname": firstname, "lastname": lastname, "id": userId};
+    final res = await supabase.client
+        .from("profile")
+        .insert(userProfile.toJson())
+        .execute();
     if (res.error != null) {
       throw res.error?.message ?? "";
     } else {
@@ -56,6 +66,57 @@ class AuthService {
         (event) => List<Stocks>.from(event.map((x) => Stocks.fromJson(x))));
 
     return res;
+  }
+
+  Future<PostgrestResponse> delete(String id) async {
+    final res = await supabase.client
+        .from("stocks")
+        .delete()
+        .match({"id": id}).execute();
+
+    if (res.error != null) {
+      throw res.error?.message ?? "";
+    } else {
+      return res;
+    }
+  }
+
+  Stream<List<UserProfile>> getProfile() {
+    final user = supabase.client.auth.user();
+
+    final res = supabase.client
+        .from('profile')
+        .stream([user!.id])
+        .execute()
+        .map((event) =>
+            List<UserProfile>.from(event.map((x) => UserProfile.fromJson(x))));
+
+    return res;
+  }
+
+  Future<void> editProfile(UserProfile userProfile) async {
+    final user = supabase.client.auth.user();
+    final res = await supabase.client
+        .from("profile")
+        .update(userProfile.toJson())
+        .eq("id", user!.id)
+        .execute();
+
+    if (res.error != null) {
+      throw res.error?.message ?? "";
+    } else {}
+  }
+
+  Future<void> editStock(String itemName, String id) async {
+    final res = await supabase.client
+        .from("stocks")
+        .update({"itemName": itemName})
+        .eq("id", id)
+        .execute();
+
+    if (res.error != null) {
+      throw res.error?.message ?? "";
+    } else {}
   }
 
   Subscription? authchange() {

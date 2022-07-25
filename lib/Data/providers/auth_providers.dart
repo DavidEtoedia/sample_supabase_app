@@ -10,3 +10,15 @@ final authServiceProvider = Provider((ref) {
 final streamData = StreamProvider((ref) {
   return ref.watch(authServiceProvider).getStocks();
 });
+
+final streamUserProfile = StreamProvider((ref) {
+  return ref.watch(authServiceProvider).getProfile();
+});
+// final realTimeSubscriptionData = Provider((ref) {
+//   return AuthService(supabase.Supabase.instance).realTime();
+// });
+
+// final realTimeSub = StateProvider((ref) {
+//   final realtime = ref.watch(realTimeSubscriptionData);
+//   return realtime;
+// });

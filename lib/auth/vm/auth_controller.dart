@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_sample_app/Data/auth_service/auth_manager/auth_manager.dart';
 import 'package:supabase_sample_app/Data/model/stocks.dart';
@@ -66,23 +67,6 @@ class InvoiceController extends StateNotifier<ControllerState> {
   final AuthManager _authManager;
   InvoiceController(this._authManager) : super(ControllerState.initial());
 
-  void signIn(String email, String password) async {
-    try {
-      state = state.copyWith(isLoading: true);
-      await _authManager.signIn(email, password);
-      state = state.copyWith(isLoading: false, success: true, error: false);
-      Future.delayed(const Duration(seconds: 2), () {
-        state = state.copyWith(isLoading: false, success: false);
-      });
-    } catch (e) {
-      state = state.copyWith(
-          isLoading: false,
-          success: false,
-          error: true,
-          errorMessage: e.toString());
-    }
-  }
-
   void signUp(
       String email, String password, String firstname, String lastname) async {
     try {
@@ -106,6 +90,24 @@ class InvoiceController extends StateNotifier<ControllerState> {
       state = state.copyWith(stockLoading: true);
       await _authManager.createStock(stocks);
       state = state.copyWith(stockLoading: false, stockSuccess: true);
+    } catch (e) {
+      state = state.copyWith(
+          isLoading: false,
+          stockSuccess: false,
+          error: true,
+          errorMessage: e.toString());
+    }
+  }
+
+  void editStock(String itemName, String id, BuildContext context) async {
+    try {
+      state = state.copyWith(stockLoading: true);
+      await _authManager.editStock(itemName, id);
+      state = state.copyWith(stockLoading: false, stockSuccess: true);
+      Navigator.pop(context);
+      Future.delayed(const Duration(seconds: 5), () {
+        state = state.copyWith(stockLoading: false, stockSuccess: false);
+      });
     } catch (e) {
       state = state.copyWith(
           isLoading: false,
