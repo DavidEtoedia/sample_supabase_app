@@ -90,6 +90,9 @@ class InvoiceController extends StateNotifier<ControllerState> {
       state = state.copyWith(stockLoading: true);
       await _authManager.createStock(stocks);
       state = state.copyWith(stockLoading: false, stockSuccess: true);
+      Future.delayed(const Duration(milliseconds: 500), () {
+        state = state.copyWith(isLoading: false, stockSuccess: false);
+      });
     } catch (e) {
       state = state.copyWith(
           isLoading: false,

@@ -6,7 +6,7 @@ abstract class AuthManagerImpl {
   Future<void> signUp(
       String email, String password, String firstname, String lastname);
   Future<GotrueSessionResponse> signIn(String email, String password);
-  Future<void> createStock(Stocks stocks);
+  Future<PostgrestResponse> createStock(Stocks stocks);
   Future<void> editStock(String itemName, String id);
   Future<void> editProfile(UserProfile userProfile);
   Future<PostgrestResponse> delete(String id);

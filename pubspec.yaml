@@ -43,12 +43,15 @@ dependencies:
   flutter_hooks: ^0.18.0
   uuid: ^3.0.6
   firebase_core: ^1.19.1
+  hive: ^2.2.3
+  hive_flutter: ^1.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   build_runner: null
   freezed: null
+  hive_generator: ^1.0.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

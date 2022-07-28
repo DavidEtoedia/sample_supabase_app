@@ -23,7 +23,7 @@ class AuthManager extends AuthManagerImpl {
       await authService.signUp(email, password, firstname, lastname);
 
   @override
-  Future<void> createStock(Stocks stocks) async =>
+  Future<supabase.PostgrestResponse> createStock(Stocks stocks) async =>
       await authService.createStock(stocks);
 
   @override

@@ -53,12 +53,19 @@ class AuthService {
     }
   }
 
-  Future<void> createStock(Stocks stocks) async {
-    final res = await supabase.client.from("stocks").insert(stocks).execute();
-
-    if (res.error != null) {
-      throw res.error?.message ?? "";
-    } else {}
+  Future<PostgrestResponse> createStock(Stocks stocks) async {
+    try {
+      final res = await supabase.client.from("stocks").insert(stocks).execute();
+      if (res.error != null) {
+        print(res.error);
+        throw res.error?.message ?? "";
+      } else {
+        // List<Stocks>.from(res.data((x) => Stocks.fromJson(x)));
+        return res;
+      }
+    } catch (e) {
+      throw e.toString();
+    }
   }
 
   Stream<List<Stocks>> getStocks() {
